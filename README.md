@@ -1,0 +1,3 @@
+# IndividualResearchProject
+
+This project will take in audio files from a website and reformat them. It downloads the setlist data from the web using the Google API and then applies that information to the files. This means it will change the song metadata. Specifically, it will change the album from the inital value (Ex: 2023/04/01 Nashville, TN) to 4/1/23 | 1st Set | Ryman Auditorium, TN. This is because the song occurs during the first set of the 4/1/23 concert and the venue for that concert is the Ryman Auditorium. It will also check if the song listed on the website has a ">" next to it signifying that that song went into the next song without pause, it will change the metadata name of the song to the song name + >.
