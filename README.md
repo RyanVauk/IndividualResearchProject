@@ -20,7 +20,7 @@ To use the program, you must download the song_organizer.py file from this repos
 ```
 231    starting_directory = "YOUR_DIRECTORY_HERE"
 ```
-### Usage
+## Usage
 To actually run the program, you must run the following commands in a OS console (where [DIRECTORY] is whatever directory the song_organizer.py is inside):
 ```
 cd /D [DIRECTORY]
