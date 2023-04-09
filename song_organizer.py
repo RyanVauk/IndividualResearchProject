@@ -142,6 +142,8 @@ def transform_webpage_to_setlist(text):
     return_array = []
     encore = 0
     text = text[text.index("Set 1"):text.index("I was there")].replace("\n(>)", " >").replace("\n(>", " > \n")
+    if("Note:" in text):
+        text = text[:text.index("Note:")]
     for i in text.splitlines():
         inital_return_size = len(return_array)
         if("Set 1" in i):
@@ -174,8 +176,6 @@ def transform_webpage_to_setlist(text):
         try:
             if(i[-2] == ">" or i[-1] == ">"):
                 return_array[-1] = return_array[-1][:return_array[-1].index(":")] + " >" + return_array[-1][return_array[-1].index(":"):]
-            # elif(">" in i):
-            #     return_array[-1] = return_array[-1][:return_array[-1].index(":")] + " >" + return_array[-1][return_array[-1].index(":"):]
         except:
             pass
         if(inital_return_size < len(return_array) and encore > 0):
@@ -323,7 +323,6 @@ for concert_folder in os.listdir():
                     
 
                     if(i.upper() not in song.upper()):
-                        print(i + " is not in " + song)
                         possible_fix = False
                 #If the above for loop gives a true value, fix the album and name of the directory song
                 if(possible_fix):
