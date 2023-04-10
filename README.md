@@ -53,6 +53,6 @@ goo230324d1_02_Atlas_Dogs   Atlas Dogs >     Goose       03/24/23 | 1st Set | Me
 ```
 This is because the two songs are from the first set of the 3/24/23 concert which took place at the Metropolitan Opera House. The set information, venue and if a song has a ">" is all taken from the setlist.fm site which, in this case, it would be [this webpage](https://www.setlist.fm/setlist/goose/2023/metropolitan-opera-house-philadelphia-pa-4bbbcbae.html).
 ## Notes
-If a log.txt files appears in the concert folder, that means there is either a missing song, duplicate or both from that concert. This means that the folder is missing a song or has a accidental duplicated file (which the program will not process and just skip). This information is also displayed in the console when the concert is done processing.
+If a log.txt files appears in the concert folder, that means there is a missing song, a duplicate song or both from that concert. This means that the folder is missing a song or has a accidental duplicated file (which the program will not process and just skip). This information is also displayed in the console when the concert is done processing.
 
 This program is ever-evolving and will always have bugs due to differences in how people type setlists on the website. For the most part though, this code will work with most concerts that are downloaded in the format shown in examples. However, if it doesn't this needs to be reported so that more edge cases can be created and the program be more functional.
