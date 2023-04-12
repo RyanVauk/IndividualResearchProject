@@ -373,7 +373,3 @@ print("Successfully deleted " + starting_directory + "!")
 print("------------------------------\nProgram Complete!")
 print("Press any key to exit...")
 input()
-
-#https://stackoverflow.com/questions/8948/accessing-mp3-metadata-with-python
-#https://www.geeksforgeeks.org/performing-google-search-using-python-code/
-#https://stackoverflow.com/questions/57521843/python-can-not-delete-folder-on-windows
