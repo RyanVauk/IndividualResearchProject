@@ -5,12 +5,10 @@ Created by Ryan Vauk
 ## Setup
 Things to download:
 - Most recent version of [python](https://www.python.org/downloads/)
-- Mutagen library
-- Urllib library
+- mutagen library
+- urllib3 library
 - Beautifulsoup4 (bs4) library
-- Googlesearch library
-- OS and Stat libraries
-- Shutil library
+- Google library
 
 To download any of these just use [pip](https://pip.pypa.io/en/stable/installation/)
 ```
