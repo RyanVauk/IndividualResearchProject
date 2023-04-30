@@ -138,52 +138,57 @@ def transform_webpage_to_setlist(text):
     ### Returns
     - list : return_array
         - Array of songs in the setlist
+    - boolean : False
+        - If any code errors
     """
-    return_array = []
-    encore = 0
-    text = text[text.index("Set 1"):text.index("I was there")].replace("\n(>)", " >").replace("\n(>", " > \n")
-    if("Note:" in text):
-        text = text[:text.index("Note:")]
-    for i in text.splitlines():
-        inital_return_size = len(return_array)
-        if("Set 1" in i):
-            key = "1st Set"
-            continue
-        if("Set 2" in i):
-            key = "2nd Set"
-            continue
-        if("Set 3" in i):
-            key = "3rd Set"
-            continue
-        if(encore == 4):
-            key = "4th Encore"
-        if(encore == 3):
-            key = "3rd Encore"
-        if(encore == 2):
-            key = "2nd Encore"
-        if("Encore" in i):
-            key = "1st Encore"
-            encore += 1
-            continue
-        if(i[-2:] != "r)" and i[0] != "" and i != "Play Video" and "reprise" not in i and "tease)" not in i and i[0] != "("):
-            return_array.append(i + ": λ" + key)
-        try:
-            return_array.append(i[i.rindex(r'> "')+3: i.index("reprise") + 7].replace(r'"', "").replace("reprise", "(Reprise)") + ":" + "λ" + key)
-            return_array[-2] = return_array[-2][:return_array[-2].index(":")] + " >" + return_array[-2][return_array[-2].index(":"):]
-        except:
-            if("reprise)" in i):
-                return_array.append(i[1:].replace('"', "").replace("reprise)", "(Reprise)" + ":" + "λ" + key))
-        try:
-            if(i[-2] == ">" or i[-1] == ">"):
-                return_array[-1] = return_array[-1][:return_array[-1].index(":")] + " >" + return_array[-1][return_array[-1].index(":"):]
-        except:
-            pass
-        if(inital_return_size < len(return_array) and encore > 0):
-            encore += 1
-    if("1st Encore" in return_array[-1]):
-        return_array[-1] = return_array[-1].replace("1st Encore", "Encore")
-    return return_array
-
+    # try to find the setlist within the page, if fail, return False
+    try:
+        return_array = []
+        encore = 0
+        text = text[text.index("Set 1"):text.index("I was there")].replace("\n(>)", " >").replace("\n(>", " > \n")
+        if("Note:" in text):
+            text = text[:text.index("Note:")]
+        for i in text.splitlines():
+            inital_return_size = len(return_array)
+            if("Set 1" in i):
+                key = "1st Set"
+                continue
+            if("Set 2" in i):
+                key = "2nd Set"
+                continue
+            if("Set 3" in i):
+                key = "3rd Set"
+                continue
+            if(encore == 4):
+                key = "4th Encore"
+            if(encore == 3):
+                key = "3rd Encore"
+            if(encore == 2):
+                key = "2nd Encore"
+            if("Encore" in i):
+                key = "1st Encore"
+                encore += 1
+                continue
+            if(i[-2:] != "r)" and i[0] != "" and i != "Play Video" and "reprise" not in i and "tease)" not in i and i[0] != "("):
+                return_array.append(i + ": λ" + key)
+            try:
+                return_array.append(i[i.rindex(r'> "')+3: i.index("reprise") + 7].replace(r'"', "").replace("reprise", "(Reprise)") + ":" + "λ" + key)
+                return_array[-2] = return_array[-2][:return_array[-2].index(":")] + " >" + return_array[-2][return_array[-2].index(":"):]
+            except:
+                if("reprise)" in i):
+                    return_array.append(i[1:].replace("‘", "").replace("’", "").replace('"', "").replace("reprise)", "(Reprise)" + ":" + "λ" + key))
+            try:
+                if(i[-2] == ">" or i[-1] == ">"):
+                    return_array[-1] = return_array[-1][:return_array[-1].index(":")] + " >" + return_array[-1][return_array[-1].index(":"):]
+            except:
+                pass
+            if(inital_return_size < len(return_array) and encore > 0):
+                encore += 1
+        if("1st Encore" in return_array[-1]):
+            return_array[-1] = return_array[-1].replace("1st Encore", "Encore")
+        return return_array
+    except:
+        return False
 def progress_bar(current, total, bar_length=20):
     """Returns a progress bar
 
@@ -242,6 +247,7 @@ except:
 total_folders = len(os.listdir())
 
 folder_iterations = 1
+to_be_moved_concert_folders = []
 
 #For concert folder in _organizesongs
 for concert_folder in os.listdir():
@@ -277,6 +283,10 @@ for concert_folder in os.listdir():
 
     #Transfom the readable text to a functioning setlist
     setlist = transform_webpage_to_setlist(text)
+    if(setlist == False):
+        print("ERROR, SETLIST NOT FOUND!")
+        to_be_moved_concert_folders.append(concert_folder)
+        continue
     count = 0
     song_list = os.listdir()
     missing_songs = ""
@@ -286,7 +296,6 @@ for concert_folder in os.listdir():
     #For song string in the downloaded setlist
     for song in setlist:
         print(progress_bar(((((count+1)/len(song_list))*70) + 25), 100) + "                                                       ", end='\r', flush=True)
-        
         #If the song is obviously a duplicate, skip it and add it to the duplicates list to be shown at the end of processing
         try:
             if(").m4a" in song_list[count] or " - Copy.m4a" in song_list[count]):
@@ -311,19 +320,15 @@ for concert_folder in os.listdir():
             else:
                 #Check each word in the directory song name, if they are all there, then there is a match between the directory song and the setlist song!
                 possible_fix = True
+                wordsCorrect = 0
                 for i in get_name(song_list[count]).replace(".", " ").split(" "):
 
-                    #Edge cases
-                    if(i == "I"):
-                        continue
-                    if(i == "II"):
-                        continue
-                    if(i == "Lama"):
-                        continue
-                    
-
-                    if(i.upper() not in song.upper()):
-                        possible_fix = False
+                    #Counter for how many words are correct between the two song names
+                    if(i.upper() in song.upper()):
+                        wordsCorrect += 1
+                #If over half the words are incorrect, this song is not the same
+                if(not wordsCorrect / len(get_name(song_list[count]).replace(".", " ").split(" ")) > 0.5):
+                    possible_fix = False
                 #If the above for loop gives a true value, fix the album and name of the directory song
                 if(possible_fix):
                     if(">" in song):
@@ -350,9 +355,8 @@ for concert_folder in os.listdir():
                 break
 
 
-    #If there is any missing songs or duplicate songs, print it to the console and make a log file containing that information
+    #If there is any missing songs or duplicate songs, make a log file containing that information
     if(len(missing_songs) + len(duplicate_songs) > 0):
-        print("missing songs: " + missing_songs + "\n" + "duplicate songs: " + duplicate_songs + "\n")
         print(progress_bar(((((count+1)/len(song_list))*70) + 25), 100) + "                                                       ", end='\r', flush=True)
         with open('log.txt', 'w', encoding="utf-8") as f:
             f.write("missing songs: " + missing_songs + "\n" + "duplicate songs: " + duplicate_songs)
@@ -360,9 +364,16 @@ for concert_folder in os.listdir():
     print(progress_bar(98, 100) + "                                                       ", end='\r', flush=True)
     
     #Move completed concert file out of _organizesongs
-    shutil.move(starting_directory + "\\" + concert_folder, starting_directory[:starting_directory.rindex("\\")])
+    to_be_moved_concert_folders.append(concert_folder)
     folder_iterations += 1
     print(progress_bar(100, 100) + "                                                       ")
+    
+    #If there is any missing songs or duplicate songs, print them to the console
+    if(len(missing_songs) + len(duplicate_songs) > 0):
+        print("missing songs: " + missing_songs + "\n" + "duplicate songs: " + duplicate_songs + "\n")
+
+for i in to_be_moved_concert_folders:
+    shutil.move(starting_directory + "\\" + i, starting_directory[:starting_directory.rindex("\\")])
 
 os.chdir(starting_directory[:starting_directory.index("\\")+1])
 os.chmod(starting_directory, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
@@ -373,3 +384,7 @@ print("Successfully deleted " + starting_directory + "!")
 print("------------------------------\nProgram Complete!")
 print("Press any key to exit...")
 input()
+
+#https://stackoverflow.com/questions/8948/accessing-mp3-metadata-with-python
+#https://www.geeksforgeeks.org/performing-google-search-using-python-code/
+#https://stackoverflow.com/questions/57521843/python-can-not-delete-folder-on-windows
