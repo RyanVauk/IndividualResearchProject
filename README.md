@@ -16,7 +16,7 @@ pip install [libraryname]
 ```
 To use the program, you must download the song_organizer.py file from this repository and then, using any IDE, change the starting_directory on line 231 to their desktop or any other folder of their choice.
 ```
-231    starting_directory = "YOUR_DIRECTORY_HERE"
+236    starting_directory = "YOUR_DIRECTORY_HERE"
 ```
 ## Usage
 To actually run the program, you must run the following commands in a OS console (where [DIRECTORY] is whatever directory the song_organizer.py is inside):
