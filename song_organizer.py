@@ -8,6 +8,17 @@ import traceback
 import re
 from console_colors import ConsoleColors
 
+def get_current_file_directory():
+    """Gets the current directory of the python file
+
+    ### Returns
+    - directory : str
+        - The directory of this python file
+    """
+    file_path = os.path.abspath(__file__)
+    directory = os.path.dirname(file_path)
+    return directory
+
 def google_search(search_term):
     """Takes in a search term and uses the googlesearch library to search for it. It will then return the first url of the resulting search.
 
@@ -390,7 +401,7 @@ traceback_information = True
 try:
     try:
         #Create a directory for the user to put all concert folders in to be processed
-        starting_directory = "YOUR_DIRECTORY_HERE"
+        starting_directory = "C:\\Users\\ryanv\\Desktop\\_organizesongs"
         os.mkdir(starting_directory)
         os.chdir(starting_directory)
         if(traceback_information):
@@ -416,14 +427,15 @@ try:
         else:
             break
     if urls_downloaded:
-        os.chdir("R:\\Coding\\My Coding\\Python\\Song Organizer\\Nugs-Downloader")
+        file_directory = get_current_file_directory()
+        os.chdir(file_directory + "\\Nugs-Downloader")
         print(ConsoleColors.CYAN + "-------------------------------------------------------------------------------------------------\n" + ConsoleColors.MAGENTA + "Downloading " + str(len(string_urls.split(" ")) - 1) + " concert(s) (this could take a while)..." + ConsoleColors.RESET)
         os.system("nugs_dl_x64.exe " + string_urls + " >nul 2>&1")
         print(ConsoleColors.GREEN + "Downloaded all inputted concerts!" + ConsoleColors.CYAN + "\n-------------------------------------------------------------------------------------------------" + ConsoleColors.RESET)
-        os.chdir("R:\\Coding\\My Coding\\Python\\Song Organizer\\Nugs-Downloader\\Nugsdownloads") 
+        os.chdir(file_directory + "\\Nugs-Downloader\\Nugsdownloads") 
         downloaded_concerts = os.listdir()
         for i in downloaded_concerts: 
-            shutil.move("R:\\Coding\\My Coding\\Python\\Song Organizer\\Nugs-Downloader\\Nugsdownloads" + "\\" + i, starting_directory)
+            shutil.move(file_directory + "\\Nugs-Downloader\\Nugsdownloads" + "\\" + i, starting_directory)
 
     os.chdir(starting_directory)
 
