@@ -6,11 +6,7 @@ Created by Ryan Vauk
 Getting started:
 - Download all .py files
 - Run [startup_song_organizer.py](https://github.com/RyanVauk/IndividualResearchProject/blob/main/startup_song_organizer.py) to automatically download all necessary libraries and outside files
-- Change the starting_directory on line 231 to any directory of your choice:
 - Change CODE-DIRECTORY in the .bat file to where you put the python files
-```
-393        starting_directory = "YOUR_DIRECTORY_HERE"
-```
 ## Usage
 To actually run the program, you must run the Song Organizer.bat file. This file will run you through the song_organier.py file. The following is what will show when you run the .bat file assuming you changed the CODE-DIRECTORY in it.
 ```
