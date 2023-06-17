@@ -390,7 +390,7 @@ traceback_information = True
 try:
     try:
         #Create a directory for the user to put all concert folders in to be processed
-        starting_directory = "C:\\Users\\ryanv\\Desktop\\_organizesongs"
+        starting_directory = "YOUR_DIRECTORY_HERE"
         os.mkdir(starting_directory)
         os.chdir(starting_directory)
         if(traceback_information):
