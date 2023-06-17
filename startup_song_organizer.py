@@ -5,6 +5,11 @@ import json
 import zipfile
 import shutil
 
+def get_current_file_directory():
+    file_path = os.path.abspath(__file__)
+    directory = os.path.dirname(file_path)
+    return directory + "\\"
+
 def progress_bar(current, total, bar_length=20):
     """Returns a progress bar
 
@@ -129,9 +134,8 @@ def download_ffmpeg(directory):
 
     os.remove(directory + "\\ffmpeg-master-latest-win64-gpl.zip")
     print(ConsoleColors.GREEN + "Successfully deleted the extraneous ffmpeg.zip file!" + ConsoleColors.RESET)
-    
 
-starting_directory = "R:\\Coding\\My Coding\\Python\\Song Organizer\\"
+starting_directory = get_current_file_directory()
 os.chdir(starting_directory)
 package_names = ["bs4", "google", "mutagen", "urllib3", "requests"]
 install_package(package_names)
