@@ -7,16 +7,12 @@ Getting started:
 - Download all .py files
 - Run [startup_song_organizer.py](https://github.com/RyanVauk/IndividualResearchProject/blob/main/startup_song_organizer.py) to automatically download all necessary libraries and outside files
 - Change the starting_directory on line 231 to any directory of your choice:
+- Change CODE-DIRECTORY in the .bat file to where you put the python files
 ```
 393        starting_directory = "YOUR_DIRECTORY_HERE"
 ```
 ## Usage
-To actually run the program, you must run the following commands in an OS console (where [DIRECTORY] is whatever directory the song_organizer.py is inside):
-```
-cd /D [DIRECTORY]
-python song_organizer.py
-```
-The console should then output the following lines if the initial start were successful. If you happen to get an error message, please try to make sure there is no other file named _organizesongs in the selected directory.
+To actually run the program, you must run the Song Organizer.bat file. This file will run you through the song_organier.py file. The following is what will show when you run the .bat file assuming you changed the CODE-DIRECTORY in it.
 ```
 Successfully created folder at C:\Users\ryanv\Desktop\_organizesongs!
 If you need to download concerts, input URLs. If you don't or are done inputting, press enter.
