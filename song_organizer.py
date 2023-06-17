@@ -4,6 +4,9 @@ from bs4 import BeautifulSoup
 from googlesearch import search
 import os, stat
 import shutil
+import traceback
+import re
+from console_colors import ConsoleColors
 
 def google_search(search_term):
     """Takes in a search term and uses the googlesearch library to search for it. It will then return the first url of the resulting search.
@@ -130,20 +133,25 @@ def get_readable_text_from_webpage(url):
     - text : str
         - Text from the url webpage
     """
-    html = urlopen(url).read()
-    soup = BeautifulSoup(html, features="html.parser")
-    for script in soup(["script", "style"]):
-        script.extract()    # rip it out
+    try:
+        html = urlopen(url).read()
+        soup = BeautifulSoup(html, features="html.parser")
+        for script in soup(["script", "style"]):
+            script.extract()    # rip it out
 
-    # get text
-    text = soup.get_text()
-    lines = (line.strip() for line in text.splitlines())
-    # break multi-headlines into a line each
-    chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-    # drop blank lines
-    text = '\n'.join(chunk for chunk in chunks if chunk)
-    text = text[text.index("You are here"):]
-    return text
+        # get text
+        text = soup.get_text()
+        lines = (line.strip() for line in text.splitlines())
+        # break multi-headlines into a line each
+        chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+        # drop blank lines
+        text = '\n'.join(chunk for chunk in chunks if chunk)
+        text = text[text.index("You are here"):]
+        return text
+    except:
+        if(traceback_information):
+            print(ConsoleColors.RED + traceback.format_exc() + ConsoleColors.RESET)
+        return False
 
 def transform_webpage_to_setlist(text):
     """Transforms basic webpage text to a readable setlist
@@ -161,51 +169,100 @@ def transform_webpage_to_setlist(text):
     # try to find the setlist within the page, if fail, return False
     try:
         return_array = []
-        encore = 0
-        text = text[text.index("Set 1"):text.index("I was there")].replace("->", ">").replace("\n(>)", " >").replace("\n(>", " > \n")
+        encore = 1
+        set_count = 0
+
+        changing_encores = False
+        try:
+            text = text[text.index("Set 1"):text.index("I was there")].replace("->", ">").replace("\n(>)", " >").replace("\n(>", " > \n")
+        except:
+            if(traceback_information):
+                print(ConsoleColors.RED + "ERROR: STRING 'Set 1' WAS NOT FOUND!" + ConsoleColors.RESET)
+            text = text[text.index("share setlist"):text.index("I was there")].replace("->", ">").replace("\n(>)", " >").replace("\n(>", " > \n")
+            key = "1st Set"
         if("Note:" in text):
             text = text[:text.index("Note:")]
         for i in text.splitlines():
-            inital_return_size = len(return_array)
-            if("Set 1" in i):
-                key = "1st Set"
-                continue
-            if("Set 2" in i):
-                key = "2nd Set"
-                continue
-            if("Set 3" in i):
-                key = "3rd Set"
-                continue
-            if(encore == 4):
-                key = "4th Encore"
-            if(encore == 3):
-                key = "3rd Encore"
-            if(encore == 2):
-                key = "2nd Encore"
-            if("Encore" in i):
-                key = "1st Encore"
-                encore += 1
-                continue
-            if(i[-2:] != "r)" and i[0] != "" and i != "Play Video" and "reprise" not in i and "tease)" not in i and i[0] != "("):
-                return_array.append(i + ": λ" + key)
-            try:
-                return_array.append(i[i.rindex(r'> "')+3: i.index("reprise") + 7].replace(r'"', "").replace("reprise", "(Reprise)") + ":" + "λ" + key)
-                return_array[-2] = return_array[-2][:return_array[-2].index(":")] + " >" + return_array[-2][return_array[-2].index(":"):]
-                questionable_songs += return_array[-2] + ", "
-            except:
-                if("reprise)" in i):
-                    return_array.append(i[1:].replace("‘", "").replace("’", "").replace('"', "").replace("reprise)", "(Reprise)" + ":" + "λ" + key))
-            try:
-                if(i[-2] == ">" or i[-1] == ">"):
-                    return_array[-1] = return_array[-1][:return_array[-1].index(":")] + " >" + return_array[-1][return_array[-1].index(":"):]
-            except:
-                pass
-            if(inital_return_size < len(return_array) and encore > 0):
-                encore += 1
+            if((i != "Play Video") and (i[-7:-1].strip() != "cover") and (i[-6:-1].strip() != "song") and i != "share setlist" and "(verse " not in i):
+                #Deals with what number set it is
+                if i[0:3] == "Set":
+                    set_count += 1
+                    suffix = "th" if 11 <= set_count <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(set_count % 10, "th")
+                    key = f"{set_count}{suffix} Set"
+                    continue
+
+                #Deals with what number encore it is
+                if ("Encore:" in i or changing_encores) and "reprise" not in i.upper() and ">" not in i:
+                    suffix = "th" if 11 <= encore <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(encore % 10, "th")
+                    key = f"{encore}{suffix} Encore"
+                    if "Encore:" in i:
+                        changing_encores = True
+                        continue
+                    if changing_encores:
+                        encore += 1
+
+                if(i[-2:] != "r)" and i[0] != "" and i != "Play Video" and "reprise" not in i and "tease)" not in i and i[0] != "("):
+                    return_array.append(i + ": λ" + key)
+                try:
+                    return_array.append(i[i.rindex(r'> "')+3: i.index("reprise") + 7].replace(r'"', "").replace("reprise", "(Reprise)") + ":" + "λ" + key)
+                    return_array[-2] = return_array[-2][:return_array[-2].index(":")] + " >" + return_array[-2][return_array[-2].index(":"):]
+                    questionable_songs += return_array[-2] + ", "
+                except:
+                    if("reprise)" in i):
+                        modified_name = re.sub(r"[‘’'‘’]", '', i)
+                        return_array.append(modified_name[1:].replace("‘", "").replace("’", "").replace('"', "").replace("reprise)", "(Reprise)" + ":" + "λ" + key))
+                    elif("reprise >)" in i):
+                        modified_name = re.sub(r"[‘’'‘’]", '', i)
+                        return_array.append(modified_name[1:].replace("‘", "").replace("’", "").replace('"', "").replace("reprise >)", "(Reprise) >" + ":" + "λ" + key))
+                    elif("REPRISE" in i.upper()):
+                        return_array[-1] = return_array[-1][:return_array[-1].index(":")] + " (Reprise)" + return_array[-1][return_array[-1].index(":"):]       
+                try:
+                    if(i[-2] == ">" or i[-1] == ">"):
+                        return_array[-1] = return_array[-1][:return_array[-1].index(":")] + " >" + return_array[-1][return_array[-1].index(":"):]
+                except:
+                    pass
+            # Deals with verses that are on different lines
+            elif("(verse " in i):
+                verse_number = str(i[i.index("(verse ") + 7])
+
+                # Adds a > to the song if it is in the verse line
+                if(">" in i):
+                    return_array[-1] = return_array[-1].replace(": λ", " >: λ")
+                    return_array[-1] = return_array[-1][:return_array[-1].index(" >: λ")] + " (Verse " + verse_number + ")" + return_array[-1][return_array[-1].index(" >: λ"):]
+                else:
+                    return_array[-1] = return_array[-1][:return_array[-1].index(": λ")] + " (Verse " + verse_number + ")" + return_array[-1][return_array[-1].index(": λ"):]
         if("1st Encore" in return_array[-1]):
             return_array[-1] = return_array[-1].replace("1st Encore", "Encore")
+
+        # Deals with verses that are on the same line
+        verse_song_name = ""
+        verse_number = 0
+        verse_index = len(return_array) - 1
+        for i in return_array[::-1]:
+            # Check if it is in format: verse #
+            if " verse " in i and (i[i.index(" verse ") + 7]).isdigit():
+                if verse_number == 0:
+                    verse_number = int(i[i.index(" verse ") + 7])
+                if verse_song_name == "":
+                    return_array[verse_index] = re.sub(r"[‘’'‘’]", '', i).strip()
+                    i = re.sub(r"[‘’'‘’]", '', i).strip()
+                    verse_song_name = re.sub(r"[‘’'‘’]", '', i[:i.index(" verse ")]).strip()
+                if(">" in i):
+                    return_array[return_array.index(i)] = i[:i.index(" verse ")] + " (Verse " + str(verse_number) + ")" + i[i.index(">: λ"):]
+                else:
+                    return_array[return_array.index(i)] = i[:i.index(" verse ")] + " (Verse " + str(verse_number) + ") " + i[i.index(": λ"):]
+                verse_number -= 1
+            elif verse_song_name != "" and verse_song_name in i and "(Verse " not in i:
+                if(">" in i):
+                    return_array[return_array.index(i)] = i[:i.index(">: λ")] + " (Verse " + str(verse_number) + ") " + i[i.index(">: λ"):]
+                else:
+                    return_array[return_array.index(i)] = i[:i.index(": λ")] + " (Verse " + str(verse_number) + ") " + i[i.index(": λ"):]
+                verse_number -= 1
+            verse_index -= 1
         return return_array
     except:
+        if(traceback_information):
+            print(ConsoleColors.RED + traceback.format_exc() + ConsoleColors.RESET)
         return False
     
 def progress_bar(current, total, bar_length=20):
@@ -230,7 +287,7 @@ def progress_bar(current, total, bar_length=20):
 
     ending = '\n' if current == total else '\r'
 
-    return f'Progress: [{arrow}{padding}] {int(fraction*100)}%'
+    return ConsoleColors.BG_BLUE + f'Progress: [{arrow}{padding}] {int(fraction*100)}%' + ConsoleColors.RESET
 
 def album_to_searchterm(artist, album):
     """Changes thename of the given directory song file to new_name
@@ -261,18 +318,18 @@ def unknown_setlist():
     global text, venue, setlist
     user_input = input("Please input either a link or each line of the set (type help for more information) \n")
     if "www." in user_input:
-        text = get_readable_text_from_webpage(url_setlist)
+        text = get_readable_text_from_webpage(user_input)
         venue = get_venue(text, album)
         setlist = transform_webpage_to_setlist(text)
         if(setlist == False):
-            print("ERROR, SETLIST NOT FOUND AGAIN!")
-            errored_input = input("Would you like to try again? It is recommended now to type out the setlist by hand (y/n).")
+            print(ConsoleColors.RED + "ERROR, SETLIST NOT FOUND AGAIN!" + ConsoleColors.RESET)
+            errored_input = input(ConsoleColors.BOLD + "Would you like to try again? It is recommended now to type out the setlist by hand (y/n)." + ConsoleColors.RESET)
             if(errored_input == "y"):
                 unknown_setlist()
             else:
                 return
-    if user_input == "help":
-        print("You must enter the setlist in the format:\n1st Set: song, song, song, ...\n2nd Set: song, song, song, ...\nEncore: song, song, ...")
+    elif user_input == "help":
+        print(ConsoleColors.BOLD + "You must enter the setlist in the format:\n1st Set: song, song, song, ...\n2nd Set: song, song, song, ...\nEncore: song, song, ..." + ConsoleColors.RESET)
         unknown_setlist()
     else:
         user_setlist_full = user_input + "\n"
@@ -284,7 +341,8 @@ def unknown_setlist():
             else:
                 break
         setlist = unknown_setlist_format(user_setlist_full)
-        venue = input("What is the venue (venue, state abbreviation)? ")
+        venue = input(ConsoleColors.BOLD + "What is the venue (venue, state abbreviation)? " + ConsoleColors.RESET)
+    return
             
 def unknown_setlist_format(setlist):
     """Formats the user-inputted setlist to a useable format within the program
@@ -327,22 +385,28 @@ def unknown_setlist_format(setlist):
 
 # ----------------------------------------------------------------------------------------------------------
 
+traceback_information = True
+
 try:
     try:
         #Create a directory for the user to put all concert folders in to be processed
         starting_directory = "C:\\Users\\ryanv\\Desktop\\_organizesongs"
         os.mkdir(starting_directory)
         os.chdir(starting_directory)
-        print("Successfully created folder at " + starting_directory + "!")
+        if(traceback_information):
+            print(ConsoleColors.GREEN + "Successfully created folder at " + starting_directory + "!" + ConsoleColors.RESET)
     except FileExistsError:
-        print(r'"_organize songs" already exists at ' + starting_directory + "!")
+        if(traceback_information):
+            print(ConsoleColors.RED + r'"_organize songs" already exists at ' + starting_directory + "!" + ConsoleColors.RESET)
     except:
-        print("Unsuccessfully created folder")
+        if(traceback_information):
+            print(ConsoleColors.RED + "Unsuccessfully created folder" + ConsoleColors.RESET)
 
     urls_to_be_downloaded = ""
     string_urls = ""
     urls_downloaded = False
-    print("If you need to download concerts, input urls. If you don't type input or are done inputting, press enter.")
+    print(ConsoleColors.BOLD + "If you need to download concerts, input urls. If you don't or are done inputting, press enter." + ConsoleColors.RESET)
+    print(ConsoleColors.BOLD + r"If you don't need to download any concerts, just put the folders into the '_organizesongs' folder" + ConsoleColors.RESET)
     while True:
         urls_to_be_downloaded = input()
         print("\033[A                                                                                         \033[A")
@@ -353,15 +417,13 @@ try:
             break
     if urls_downloaded:
         os.chdir("R:\\Coding\\My Coding\\Python\\Song Organizer\\Nugs-Downloader")
-        print("-----------------------------------------------------\nDownloading inputted concerts (this could take a while)...")
+        print(ConsoleColors.CYAN + "-------------------------------------------------------------------------------------------------\n" + ConsoleColors.MAGENTA + "Downloading " + str(len(string_urls.split(" ")) - 1) + " concert(s) (this could take a while)..." + ConsoleColors.RESET)
         os.system("nugs_dl_x64.exe " + string_urls + " >nul 2>&1")
-        print("Downloaded all inputted concerts!\n-----------------------------------------------------")
-        os.chdir("R:\\Coding\\My Coding\\Python\\Song Organizer\\Nugs-Downloader\\Nugsdownloads")
+        print(ConsoleColors.GREEN + "Downloaded all inputted concerts!" + ConsoleColors.CYAN + "\n-------------------------------------------------------------------------------------------------" + ConsoleColors.RESET)
+        os.chdir("R:\\Coding\\My Coding\\Python\\Song Organizer\\Nugs-Downloader\\Nugsdownloads") 
         downloaded_concerts = os.listdir()
         for i in downloaded_concerts: 
             shutil.move("R:\\Coding\\My Coding\\Python\\Song Organizer\\Nugs-Downloader\\Nugsdownloads" + "\\" + i, starting_directory)
-    else:
-        print("You must move any concert folders into _organizesongs!")
 
     os.chdir(starting_directory)
 
@@ -373,7 +435,10 @@ try:
 
     #For concert folder in _organizesongs
     for concert_folder in os.listdir():
-        print("\nChanging " + concert_folder + " (" + str(folder_iterations) + "/" + str(total_folders) + ")")
+        if folder_iterations == 1:
+            print(ConsoleColors.CYAN + "--------------------------------------------------\n" + ConsoleColors.MAGENTA + "Changing " + concert_folder + " (" + str(folder_iterations) + "/" + str(total_folders) + ")" + ConsoleColors.RESET)
+        else:
+            print(ConsoleColors.MAGENTA + "Changing " + concert_folder + " (" + str(folder_iterations) + "/" + str(total_folders) + ")" + ConsoleColors.RESET)
         print(progress_bar(0, 100) + "                                                       ", end='\r', flush=True)
         os.chdir(starting_directory + "\\" + concert_folder)
         print(os.getcwd())
@@ -399,6 +464,15 @@ try:
 
         #Get readable text from the downloaded setlist information
         text = get_readable_text_from_webpage(url_setlist)
+        if(text == False):
+            print(ConsoleColors.RED + "ERROR, SETLIST NOT FOUND!" + ConsoleColors.RESET)
+            errored_input = input(ConsoleColors.BOLD + "Would you like to input the setlist yourself (y/n)? " + ConsoleColors.RESET)
+            if(errored_input == "y"):
+                unknown_setlist()
+            else:
+                to_be_moved_concert_folders.append(concert_folder)
+                continue
+            
 
         #Get venue for later use
         venue = get_venue(text, album)
@@ -406,8 +480,8 @@ try:
         #Transfom the readable text to a functioning setlist
         setlist = transform_webpage_to_setlist(text)
         if(setlist == False):
-            print("ERROR, SETLIST NOT FOUND!")
-            errored_input = input("Would you like to input the setlist yourself (y/n)? ")
+            print(ConsoleColors.RED + "ERROR, SETLIST NOT FOUND!" + ConsoleColors.RESET)
+            errored_input = input(ConsoleColors.BOLD + "Would you like to input the setlist yourself (y/n)? " + ConsoleColors.RESET)
             if(errored_input == "y"):
                 unknown_setlist()
             else:
@@ -422,13 +496,7 @@ try:
         #For song string in the downloaded setlist
         for song in setlist:
             print(progress_bar(((((count+1)/len(song_list))*70) + 25), 100) + "                                                       ", end='\r', flush=True)
-            #If the song is obviously a duplicate, skip it and add it to the duplicates list to be shown at the end of processing
-            # try:
-            #     if("1).m4a" in song_list[count] or " - Copy.m4a" in song_list[count]):
-            #         duplicate_songs += song_list[count] + ", "
-            #         count += 1
-            # except:
-            #     break
+
             if(get_name(song_list[count])[0:5].upper() == "INTRO" or get_name(song_list[count])[0:6].upper == "TUNING"):
                 new_album = date + " | " + setlist[setlist.index(song) + 1][setlist[setlist.index(song) + 1].index("λ") + 1:] + " | " + venue
                 change_album(starting_directory + "\\" + concert_folder + "\\" + os.listdir()[count], new_album)
@@ -514,7 +582,7 @@ try:
         
         #If there is any missing songs or questionable songs, print them to the console
         if(len(missing_songs) + len(questionable_songs) > 0):
-            print("missing songs: " + missing_songs + "\n" + "questionable songs: " + questionable_songs + "\n")
+            print(ConsoleColors.RED + "missing songs: " + missing_songs + "\n" + "questionable songs: " + questionable_songs + "\n" + ConsoleColors.RESET)
 
     for i in to_be_moved_concert_folders:
         shutil.move(starting_directory + "\\" + i, starting_directory[:starting_directory.rindex("\\")])
@@ -524,14 +592,15 @@ try:
 
     #Remove _organizesongs folder
     shutil.rmtree(starting_directory, ignore_errors=False)
-    print("Successfully deleted " + starting_directory + "!")
-    print("-----------------------------------------------------\nProgram Complete!")
-    print("Press any key to exit...")
+    print(ConsoleColors.GREEN + "Successfully deleted " + starting_directory + "!" + ConsoleColors.RESET)
+    print(ConsoleColors.CYAN + "-------------------------------------------------------------------------------------------------\n" + ConsoleColors.GREEN + "Program Complete!" + ConsoleColors.RESET)
+    print(ConsoleColors.BOLD + "Press any key to exit..." + ConsoleColors.RESET)
     input()
 
     #https://stackoverflow.com/questions/8948/accessing-mp3-metadata-with-python
     #https://www.geeksforgeeks.org/performing-google-search-using-python-code/
     #https://stackoverflow.com/questions/57521843/python-can-not-delete-folder-on-windows
 except Exception as e:
-    print(f"An error occurred: {str(e)}")
-    input("Press Enter to exit...")
+    if(traceback_information):
+        print(ConsoleColors.RED + traceback.format_exc() + ConsoleColors.RESET)
+        input(ConsoleColors.RED + "Press Enter to exit..." + ConsoleColors.RESET)
