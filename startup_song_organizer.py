@@ -2,7 +2,8 @@ import subprocess
 from console_colors import ConsoleColors
 import os
 import json
-import traceback
+import zipfile
+import shutil
 
 def progress_bar(current, total, bar_length=20):
     """Returns a progress bar
@@ -74,6 +75,8 @@ def download_github(url):
 
 def manage_config_file(directory):
 
+    print(ConsoleColors.MAGENTA + "Creating  a config file..." + ConsoleColors.RESET)
+
     email = input(ConsoleColors.BOLD + "Please input your nugs.net email: " + ConsoleColors.RESET)
     password = input(ConsoleColors.BOLD + "Please input your nugs.net password: " + ConsoleColors.RESET)
     data = {
@@ -92,7 +95,41 @@ def manage_config_file(directory):
     with open(file_path, "w") as file:
         json.dump(data, file, indent=4)
 
-    print(f"JSON file '{file_path}' created successfully.")
+    print(ConsoleColors.GREEN + f"JSON file '{file_path}' created successfully!                                           " + ConsoleColors.CYAN + "\n-------------------------------------------------------------------------------------------------" + ConsoleColors.RESET)
+
+def download_ffmpeg(directory):
+    import requests
+
+    print(ConsoleColors.MAGENTA + "Downloading ffmpeg files..." + ConsoleColors.RESET)
+
+    os.chdir(directory)
+    url = 'https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-win64-gpl.zip'
+    save_path = 'ffmpeg-master-latest-win64-gpl.zip'
+    extract_path = 'ffmpeg-master'
+
+    response = requests.get(url)
+    response.raise_for_status()
+
+    with open(save_path, 'wb') as file:
+        file.write(response.content)
+    print(ConsoleColors.GREEN + "Successfully downloaded ffmpeg.zip!" + ConsoleColors.RESET)
+
+    with zipfile.ZipFile(save_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_path)
+    print(ConsoleColors.GREEN + "Successfully unzipped ffmpeg.zip!" + ConsoleColors.RESET)
+
+    os.chdir(directory + "\\ffmpeg-master\\ffmpeg-master-latest-win64-gpl\\bin")
+    for file in os.listdir():
+        try:
+            shutil.move(directory + "\\ffmpeg-master\\ffmpeg-master-latest-win64-gpl\\bin\\" + file, directory)
+        except:
+            print(ConsoleColors.RED + "ERROR: FILE ALREADY EXISTS! PLEASE MAKE SURE TO DELETE ALL FFMPEG FILES FIRST!")
+            return
+    print(ConsoleColors.GREEN + "Successfully moved all .exes to Nugs-Downloader directory!" + ConsoleColors.RESET)
+
+    os.remove(directory + "\\ffmpeg-master-latest-win64-gpl.zip")
+    print(ConsoleColors.GREEN + "Successfully deleted the extraneous ffmpeg.zip file!" + ConsoleColors.RESET)
+    
 
 starting_directory = "R:\\Coding\\My Coding\\Python\\Song Organizer\\"
 os.chdir(starting_directory)
@@ -100,3 +137,7 @@ package_names = ["bs4", "google", "mutagen", "urllib3", "requests"]
 install_package(package_names)
 download_github("https://api.github.com/repos/Sorrow446/Nugs-Downloader/releases/latest")
 manage_config_file(starting_directory + "Nugs-Downloader")
+download_ffmpeg(starting_directory + "Nugs-Downloader")
+print(ConsoleColors.CYAN + "\n-------------------------------------------------------------------------------------------------" + ConsoleColors.GREEN + "\nProgram finished successfully!" + ConsoleColors.RESET)
+print(ConsoleColors.BOLD + "Press any key to exit..." + ConsoleColors.RESET)
+input()
