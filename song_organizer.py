@@ -614,7 +614,6 @@ try:
     #https://www.geeksforgeeks.org/performing-google-search-using-python-code/
     #https://stackoverflow.com/questions/57521843/python-can-not-delete-folder-on-windows
 except Exception as e:
-    print(song)
     if(traceback_information):
         print(ConsoleColors.RED + traceback.format_exc() + ConsoleColors.RESET)
         input(ConsoleColors.RED + "Press Enter to exit..." + ConsoleColors.RESET)
