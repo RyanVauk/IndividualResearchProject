@@ -259,13 +259,13 @@ def transform_webpage_to_setlist(text):
                     i = re.sub(r"[‘’'‘’]", '', i).strip()
                     verse_song_name = re.sub(r"[‘’'‘’]", '', i[:i.index(" verse ")]).strip()
                 if(">" in i):
-                    return_array[return_array.index(i)] = i[:i.index(" verse ")] + " (Verse " + str(verse_number) + ")" + i[i.index(">: λ"):]
+                    return_array[return_array.index(i)] = i[:i.index(" verse ")] + " (Verse " + str(verse_number) + ")" + i[i.index(" >: λ"):]
                 else:
                     return_array[return_array.index(i)] = i[:i.index(" verse ")] + " (Verse " + str(verse_number) + ") " + i[i.index(": λ"):]
                 verse_number -= 1
             elif verse_song_name != "" and verse_song_name in i and "(Verse " not in i:
                 if(">" in i):
-                    return_array[return_array.index(i)] = i[:i.index(">: λ")] + " (Verse " + str(verse_number) + ") " + i[i.index(">: λ"):]
+                    return_array[return_array.index(i)] = i[:i.index(">: λ")] + " (Verse " + str(verse_number) + ") " + i[i.index(" >: λ"):]
                 else:
                     return_array[return_array.index(i)] = i[:i.index(": λ")] + " (Verse " + str(verse_number) + ") " + i[i.index(": λ"):]
                 verse_number -= 1
@@ -408,7 +408,7 @@ try:
             print(ConsoleColors.GREEN + "Successfully created folder at " + starting_directory + "!" + ConsoleColors.RESET)
     except FileExistsError:
         if(traceback_information):
-            print(ConsoleColors.RED + r'"_organize songs" already exists at ' + starting_directory + "!" + ConsoleColors.RESET)
+            print(ConsoleColors.RED + r'"_organizesongs" already exists at ' + starting_directory + "!" + ConsoleColors.RESET)
     except:
         if(traceback_information):
             print(ConsoleColors.RED + "Unsuccessfully created folder" + ConsoleColors.RESET)
@@ -546,7 +546,8 @@ try:
                         elif(i.upper().replace(" ", "").replace(" ", "") in song.upper().replace(" ", "").replace(" ", "")):
                             wordsCorrect += 1
                     #If over half the words are incorrect, this song is not the same
-                    if(not wordsCorrect / len(get_name(song_list[count]).replace(".", " ").split(" ")) >= 0.5):
+                    
+                    if(not wordsCorrect / len(get_name(song_list[count]).replace(".", " ").split(" ")) >= (1/3)):
                         possible_fix = False
                     #If the above for loop gives a true value, fix the album and name of the directory song
                     if(possible_fix):
@@ -613,6 +614,7 @@ try:
     #https://www.geeksforgeeks.org/performing-google-search-using-python-code/
     #https://stackoverflow.com/questions/57521843/python-can-not-delete-folder-on-windows
 except Exception as e:
+    print(song)
     if(traceback_information):
         print(ConsoleColors.RED + traceback.format_exc() + ConsoleColors.RESET)
         input(ConsoleColors.RED + "Press Enter to exit..." + ConsoleColors.RESET)
