@@ -5,7 +5,7 @@ Created by Ryan Vauk
 ## Setup
 Getting started:
 - Download all .py files
-- Run [startup_song_organizer.py](https://github.com/RyanVauk/IndividualResearchProject/blob/main/startup_song_organizer.py) to automatically download all necessary libraries and outside files
+- Run [Startup Song Organizer.bat]([https://github.com/RyanVauk/IndividualResearchProject/blob/main/startup_song_organizer.py](https://github.com/RyanVauk/Live-Song-Organizer/blob/main/Startup%20Song%20Organizer.bat)) to automatically download all necessary libraries and outside files (NOTE: you must have all of the files downloaded on this repository!)
 - Change CODE-DIRECTORY in the .bat file to where you put the python files
 ## Usage
 To actually run the program, you must run the Song Organizer.bat file. This file will run you through the song_organier.py file. The following is what will show when you run the .bat file assuming you changed the CODE-DIRECTORY in it.
