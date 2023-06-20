@@ -58,8 +58,24 @@ def change_album(dir, new_album):
     2. new_album : str
         - The new album to replace the old one
     """
+    global artist
+
     file=MP4(dir)
+    if(artist == "Billy Strings"):
+        change_genre(file, "Bluegrass")
     file[r'©alb'] = new_album
+    file.save()
+
+def change_genre(file, new_genre):
+    """Changes genre of the given directory song file to new_genre
+
+    ### Parameters
+    1. file : MP4
+        - File of song file to change
+    2. new_genre : str
+        - The new genre to replace the old one
+    """
+    file[r'©gen'] = new_genre
     file.save()
 
 def change_name(dir, new_name):
@@ -403,6 +419,7 @@ try:
         #Create a directory for the user to put all concert folders in to be processed
         desktop_path = os.path.expanduser("~/Desktop")
         starting_directory = desktop_path + "\\_organizesongs"
+        
         os.mkdir(starting_directory)
         os.chdir(starting_directory)
         if(traceback_information):
@@ -579,7 +596,6 @@ try:
                 iterations += 1
                 if(iterations >= 5):
                     break
-
 
         #If there is any missing songs or questionable songs, make a log file containing that information
         if(len(missing_songs) + len(questionable_songs) > 0):
