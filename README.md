@@ -1,5 +1,3 @@
-TEST
-
 # IndividualResearchProject
 Song Organizer is a python script utilizing mutagen, google, requests, shutil, urllib3, bs4, and stat libraries in order to organize song files into a more desirable format. It utilizes the setlist.fm website in order to accomplish this task.
 
